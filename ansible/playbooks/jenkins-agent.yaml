@@ -1,0 +1,53 @@
+---
+- name: "EC2 - Install Jenkins Agent"
+  hosts: all
+  # hosts: jenkins_agents
+  become: true
+
+  roles:
+    - ../roles/common-setup-role # Full path to role
+    - ../roles/git # Full path to role
+    - ../roles/docker # Full path to role
+    - ../roles/jenkins-agent
+    - ../roles/ansible
+    - ../roles/jenkins-agent-cloud
+
+  tasks:
+    
+
+    
+    
+    # - name: Register agent IP in Jenkins Master casc
+    #   hosts: {{ JENKINS_MASTER_URL }}
+    #   shell:  |
+    #     JenkinsContainerId=$(docker ps --filter="name=jenkins" --format="{{ '{{' }}.ID}}")
+    #     docker exec -it ${JenkinsContainerId} sed -i "s/{{ '{{' }} JENKINS_AGENT_URL }}/{{ private_ip }}/" /var/jenkins_home/casc.yaml
+
+#        sed -i "s/{{JENKINS_AGENT_URL}}/{{ private_ip }}/" /var/jenkins_home/casc.yaml
+
+# docker ps --filter="name=jenkins" --format="{{.ID}}"
+
+      # Replace {{JENKINS_AGENT_URL}} with {{ private_ip }}  in casc
+      #  sed -i "s/{{JENKINS_AGENT_URL}}/0.0.0.0/" /home/casc.yaml
+      #  docker exec -it ${JenkinsContainerId} sed -i "s/{{ JENKINS_AGENT_URL }}/{{ private_ip }}/" /home/casc.yaml
+
+
+
+# Replace JCASC file in master and reload configuration
+
+
+# sudo yum update -y
+# sudo yum install java-1.8.0 -y
+#sudo alternatives --install /usr/bin/java java /usr/java/latest/bin/java 1 -y
+# sudo amazon-linux-extras install -y docker
+# sudo usermod -a -G docker ec2-user
+# id ec2-user
+# sudo systemctl enable docker.service
+# sudo systemctl start docker.service
+# sudo systemctl status docker.service
+# sudo docker version
+
+# # sudo yum install epel-release -y
+# # sudo yum install python-pip -y
+# sudo pip install awscli
+# sudo yum install git -y
