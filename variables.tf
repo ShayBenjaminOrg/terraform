@@ -38,7 +38,6 @@ variable "host_os" {
   default = "linux"
 }
 
-# variable "playbooks_path" {
-#   type    = string
-#   default = "${path.root}/modules/ansible/playbooks/"
-# }
+variable "PLAYBOOKS_PATH" {
+  type    = string
+}

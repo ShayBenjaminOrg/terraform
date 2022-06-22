@@ -118,3 +118,4 @@ docker-java-api
 docker-plugin
 docker-workflow
 swarm
+ssh-agent

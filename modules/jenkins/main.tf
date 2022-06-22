@@ -4,7 +4,7 @@ resource "aws_instance" "jenkins_master" {
   key_name               = var.key_name
   vpc_security_group_ids = [aws_security_group.jenkins_master_sg.id]
   subnet_id              = var.subnet_id[0]
-  
+
 
   root_block_device {
     volume_size = 8
@@ -31,7 +31,7 @@ resource "aws_instance" "jenkins_master" {
     private_key = file("~/.ssh/mtckey")
   }
 
-provisioner "file" {
+  provisioner "file" {
     source      = "~/.ssh/mtckey"
     destination = "/home/ec2-user/.ssh/id_rsa"
   }
@@ -59,7 +59,7 @@ provisioner "file" {
     destination = "/home/ec2-user/playground/jcasc"
   }
 
-  
+
 
   provisioner "file" {
     source      = "assets/node_exporter.sh"
@@ -84,7 +84,7 @@ resource "aws_instance" "jenkins_agent" {
   key_name               = var.key_name
   vpc_security_group_ids = [aws_security_group.jenkins_agent_sg.id]
   subnet_id              = var.subnet_id[0]
-  depends_on = [aws_instance.jenkins_master]
+  depends_on             = [aws_instance.jenkins_master]
   #user_data = file("${path.module}/assets/agent/userdata_agent.tpl")
   root_block_device {
     volume_size = 8
@@ -133,10 +133,15 @@ resource "aws_instance" "jenkins_agent" {
   # }
 
   provisioner "file" {
-      source      = "~/.ssh/mtckey"
-      destination = "/home/ec2-user/.ssh/id_rsa"
+    source      = "~/.ssh/mtckey"
+    destination = "/home/ec2-user/.ssh/id_rsa"
   }
-  
+
+  provisioner "file" {
+    source      = "~/.ssh/aws_github_key"
+    destination = "/home/ec2-user/.ssh/aws_github_key"
+  }
+
   provisioner "remote-exec" {
     inline = [
       "mkdir -p /home/ec2-user/node_exporter",
@@ -153,10 +158,18 @@ resource "aws_instance" "jenkins_agent" {
   provisioner "local-exec" {
     # command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ec2-user -i '${self.public_ip},' --private-key ~/.ssh/mtckey -e 'pub_key=~/.ssh/mtckey.pub' -e private_ip=${self.private_ip} -e JENKINS_MASTER_URL=${aws_instance.jenkins_master.private_ip} ${path.root}/modules/ansible/playbooks/jenkins-agent.yaml"
     command = <<-EOT
-      ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ec2-user -i '${self.public_ip},' --private-key ~/.ssh/mtckey -e 'pub_key=~/.ssh/mtckey.pub' -e private_ip=${self.private_ip} -e JENKINS_MASTER_URL=${aws_instance.jenkins_master.private_ip} -e USER=${var.JENKINS_ADMIN_ID} -e PASS=${var.JENKINS_ADMIN_PASSWORD} ${path.root}/ansible/playbooks/jenkins-agent.yaml
-      ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ec2-user -i '${aws_instance.jenkins_master.public_ip},' --private-key ~/.ssh/mtckey -e 'pub_key=~/.ssh/mtckey.pub' -e private_ip=${self.private_ip} ${path.root}/ansible/playbooks/jenkins-agent-registration.yaml
+      ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ec2-user -i '${self.public_ip},' --private-key ~/.ssh/mtckey -e 'pub_key=~/.ssh/mtckey.pub' -e private_ip=${self.private_ip} -e JENKINS_MASTER_URL=${aws_instance.jenkins_master.private_ip} -e USER=${var.JENKINS_ADMIN_ID} -e PASS=${var.JENKINS_ADMIN_PASSWORD} ${var.PLAYBOOKS_PATH}/jenkins-agent.yaml
+      ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ec2-user -i '${aws_instance.jenkins_master.public_ip},' --private-key ~/.ssh/mtckey -e 'pub_key=~/.ssh/mtckey.pub' -e private_ip=${self.private_ip} ${var.PLAYBOOKS_PATH}/jenkins-agent-registration.yaml
     EOT
   }
+
+  # provisioner "local-exec" {
+  #   # command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ec2-user -i '${self.public_ip},' --private-key ~/.ssh/mtckey -e 'pub_key=~/.ssh/mtckey.pub' -e private_ip=${self.private_ip} -e JENKINS_MASTER_URL=${aws_instance.jenkins_master.private_ip} ${path.root}/modules/ansible/playbooks/jenkins-agent.yaml"
+  #   command = <<-EOT
+  #     ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ec2-user -i '${self.public_ip},' --private-key ~/.ssh/mtckey -e 'pub_key=~/.ssh/mtckey.pub' -e private_ip=${self.private_ip} -e JENKINS_MASTER_URL=${aws_instance.jenkins_master.private_ip} -e USER=${var.JENKINS_ADMIN_ID} -e PASS=${var.JENKINS_ADMIN_PASSWORD} ${path.root}/ansible/playbooks/jenkins-agent.yaml
+  #     ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ec2-user -i '${aws_instance.jenkins_master.public_ip},' --private-key ~/.ssh/mtckey -e 'pub_key=~/.ssh/mtckey.pub' -e private_ip=${self.private_ip} ${path.root}/ansible/playbooks/jenkins-agent-registration.yaml
+  #   EOT
+  # }
 
   # provisioner "remote-exec" {
   #   inline = [

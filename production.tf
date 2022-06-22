@@ -53,6 +53,7 @@ module "jenkins" {
   host_os = var.host_os
   JENKINS_ADMIN_ID = var.JENKINS_ADMIN_ID
   JENKINS_ADMIN_PASSWORD = var.JENKINS_ADMIN_PASSWORD
+  PLAYBOOKS_PATH = var.PLAYBOOKS_PATH
 }
 
 module "app" {
@@ -66,6 +67,7 @@ module "app" {
   //prometheus_sg = module.monitoring.prometheus_sg
   host_os = var.host_os
   jenkins_agent_sg_id = module.jenkins.jenkins_agent_sg_id
+  PLAYBOOKS_PATH = var.PLAYBOOKS_PATH
 }
 
 

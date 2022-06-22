@@ -46,4 +46,8 @@ variable "JENKINS_ADMIN_PASSWORD" {
   description = "JENKINS_ADMIN_PASSWORD"
 }
 
+variable "PLAYBOOKS_PATH" {
+  description = "PLAYBOOKS_PATH"
+}
+
 

@@ -43,6 +43,9 @@ variable "jenkins_agent_sg_id" {
   description = "Jenkins agent to allow ingress"
 }
 
+variable "PLAYBOOKS_PATH" {
+  description = "PLAYBOOKS_PATH"
+}
 
 
 
