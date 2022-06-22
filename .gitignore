@@ -35,3 +35,4 @@ packages/
 *.pem
 *terraform.tfstate*
 .vscode/
+.env
