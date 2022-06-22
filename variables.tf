@@ -39,5 +39,13 @@ variable "host_os" {
 }
 
 variable "PLAYBOOKS_PATH" {
-  type    = string
+  type = string
+}
+
+variable "GIT_PRIVATE_KEY" {
+  default = ""
+}
+
+variable "GIT_SSH_USERNAME" {
+  default = "shayb"
 }

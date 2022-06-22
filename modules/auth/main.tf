@@ -2,6 +2,7 @@
 resource "tls_private_key" "key_pair" {
   algorithm = "RSA"
   rsa_bits  = 4096
+  
 }
 # Create the Key Pair
 resource "aws_key_pair" "key_pair" {
@@ -13,7 +14,6 @@ resource "local_file" "ssh_key" {
   filename = "${aws_key_pair.key_pair.key_name}.pem"
   content  = tls_private_key.key_pair.private_key_pem
 }
-
 
 resource "aws_key_pair" "demo_auth" {
   key_name   = "mtckey"

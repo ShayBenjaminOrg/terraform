@@ -50,4 +50,8 @@ variable "PLAYBOOKS_PATH" {
   description = "PLAYBOOKS_PATH"
 }
 
+variable "GIT_PRIVATE_KEY" {}
+
+variable "GIT_SSH_USERNAME" {}
+
 
