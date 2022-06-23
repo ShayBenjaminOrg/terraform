@@ -3,7 +3,8 @@ resource "aws_instance" "app" {
   instance_type          = "${var.instance_type}"
   ami                    = data.aws_ami.server_ami.id
   key_name               = "${var.key_name}"
-  vpc_security_group_ids = [aws_security_group.app_sg.id]
+  //vpc_security_group_ids = [aws_security_group.app_sg.id]
+  vpc_security_group_ids = [var.app_sg_id]
   subnet_id              = var.subnet_id[0]
   //user_data              = file("/modules/jenkins/assets/userdata_agent.tpl")
   user_data = "${file("${path.module}/assets/userdata.tpl")}"

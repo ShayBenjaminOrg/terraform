@@ -28,24 +28,29 @@ variable "local_ip" {
   description = "Local IP for ingress"
 }
 
-variable "prometheus_sg" {
-  default = "default"
-  description = "Prometheus sg for monitoring"
-}
+# variable "prometheus_sg" {
+#   default = "default"
+#   description = "Prometheus sg for monitoring"
+# }
 
 variable "host_os" {
   type    = string
   default = "windows"
 }
 
-variable "jenkins_agent_sg_id" {
-  type    = string
-  description = "Jenkins agent to allow ingress"
-}
+# variable "jenkins_agent_sg_id" {
+#   type    = string
+#   description = "Jenkins agent to allow ingress"
+# }
 
 variable "PLAYBOOKS_PATH" {
   description = "PLAYBOOKS_PATH"
 }
+
+variable "app_sg_id" {
+  description = "app_sg_id"
+}
+
 
 
 

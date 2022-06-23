@@ -54,4 +54,13 @@ variable "GIT_PRIVATE_KEY" {}
 
 variable "GIT_SSH_USERNAME" {}
 
+## Security Groups ##
+variable "jenkins_master_sg_id" {
+  description = "jenkins_master_sg_id"
+}
+
+variable "jenkins_agent_sg_id" {
+  description = "jenkins_agent_sg_id"
+}
+
 

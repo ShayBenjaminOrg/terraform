@@ -10,19 +10,25 @@ locals {
   codebase_root_path            = abspath("${path.module}/../..")
   # Trim local.codebase_root_path and one additional slash from local.module_path
   module_rel_path = substr(local.module_path, length(local.codebase_root_path) + 1, length(local.module_path))
+
+  # Rendering flags
+  isAnsibleEnabled    = false
+  isJenkinsEnabled    = true
+  isPrometheusEnabled = false
+  isELKEnabled        = false
 }
 
 module "networking" {
-  //source      = "${abspath(path.module)}/modules/networking"
-  //source      = "${local.local.module_path}/modules/networking"
-  source = "./modules/networking"
-
+  source               = "./modules/networking"
   region               = var.region
+  local_ip             = var.local_ip
   environment          = var.environment
   vpc_cidr             = var.vpc_cidr
   public_subnets_cidr  = var.public_subnets_cidr
   private_subnets_cidr = var.private_subnets_cidr
   availability_zones   = local.production_availability_zones
+  isPrometheusEnabled  = local.isPrometheusEnabled
+  isJenkinsEnabled     = local.isJenkinsEnabled
 }
 
 module "auth" {
@@ -50,12 +56,14 @@ module "jenkins" {
   local_ip    = var.local_ip
   vpc         = module.networking.vpc
   //prometheus_sg = module.monitoring.prometheus_sg
-  host_os = var.host_os
-  JENKINS_ADMIN_ID = var.JENKINS_ADMIN_ID
+  host_os                = var.host_os
+  JENKINS_ADMIN_ID       = var.JENKINS_ADMIN_ID
   JENKINS_ADMIN_PASSWORD = var.JENKINS_ADMIN_PASSWORD
-  PLAYBOOKS_PATH = var.PLAYBOOKS_PATH
-  GIT_PRIVATE_KEY = var.GIT_PRIVATE_KEY
-  GIT_SSH_USERNAME = var.GIT_SSH_USERNAME
+  PLAYBOOKS_PATH         = var.PLAYBOOKS_PATH
+  GIT_PRIVATE_KEY        = var.GIT_PRIVATE_KEY
+  GIT_SSH_USERNAME       = var.GIT_SSH_USERNAME
+  jenkins_master_sg_id   = module.networking.jenkins_master_sg_id
+  jenkins_agent_sg_id    = module.networking.jenkins_agent_sg_id
 }
 
 module "app" {
@@ -67,9 +75,10 @@ module "app" {
   local_ip    = var.local_ip
   vpc         = module.networking.vpc
   //prometheus_sg = module.monitoring.prometheus_sg
-  host_os = var.host_os
-  jenkins_agent_sg_id = module.jenkins.jenkins_agent_sg_id
-  PLAYBOOKS_PATH = var.PLAYBOOKS_PATH
+  host_os             = var.host_os
+  //jenkins_agent_sg_id = module.jenkins.jenkins_agent_sg_id
+  PLAYBOOKS_PATH      = var.PLAYBOOKS_PATH
+  app_sg_id           = module.networking.app_sg_id
 }
 
 

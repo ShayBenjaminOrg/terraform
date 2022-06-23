@@ -2,6 +2,10 @@ variable "environment" {
   description = "The Deployment environment"
 }
 
+variable "local_ip" {
+  description = "Local IP for ingress"
+}
+
 variable "vpc_cidr" {
   description = "The CIDR block of the vpc"
 }
@@ -25,3 +29,12 @@ variable "availability_zones" {
   description = "The az that the resources will be launched"
 }
 
+variable "isPrometheusEnabled" {
+  type        = bool
+  default = false
+}
+
+variable "isJenkinsEnabled" {
+  type        = bool
+  default = false
+}
