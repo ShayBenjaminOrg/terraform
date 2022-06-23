@@ -120,3 +120,5 @@ docker-workflow
 swarm
 ssh-agent
 ansicolor
+theme-manager
+dark-theme
