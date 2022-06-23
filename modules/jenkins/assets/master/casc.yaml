@@ -70,6 +70,10 @@ jenkins:
             name: "jnlp-configured"
             pullTimeout: 300
             remoteFs: "/home/jenkins"
+unclassified:
+  themeManager:
+    disableUserThemes: true
+    theme: "darkSystem" # use 'dark' for forcing the dark theme regardless of OS settings
 # jenkins:
 #   securityRealm:
 #     local:

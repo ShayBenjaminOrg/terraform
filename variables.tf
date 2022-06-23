@@ -42,10 +42,6 @@ variable "PLAYBOOKS_PATH" {
   type = string
 }
 
-variable "GIT_PRIVATE_KEY" {
-  default = ""
-}
+variable "GIT_PRIVATE_KEY" {}
 
-variable "GIT_SSH_USERNAME" {
-  default = "shayb"
-}
+variable "GIT_SSH_USERNAME" {}

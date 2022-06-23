@@ -119,3 +119,4 @@ docker-plugin
 docker-workflow
 swarm
 ssh-agent
+ansicolor
