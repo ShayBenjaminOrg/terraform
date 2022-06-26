@@ -13,7 +13,7 @@ locals {
 
   # Rendering flags
   isAnsibleEnabled    = false
-  isJenkinsEnabled    = true
+  isJenkinsEnabled    = false
   isPrometheusEnabled = false
   isELKEnabled        = false
 }
@@ -47,39 +47,39 @@ module "auth" {
 #    host_os = var.host_os
 # }
 
-module "jenkins" {
-  source      = "./modules/jenkins"
-  vpc_id      = module.networking.vpc_id
-  subnet_id   = module.networking.public_subnets_id[0]
-  environment = var.environment
-  key_name    = module.auth.key_name
-  local_ip    = var.local_ip
-  vpc         = module.networking.vpc
-  //prometheus_sg = module.monitoring.prometheus_sg
-  host_os                = var.host_os
-  JENKINS_ADMIN_ID       = var.JENKINS_ADMIN_ID
-  JENKINS_ADMIN_PASSWORD = var.JENKINS_ADMIN_PASSWORD
-  PLAYBOOKS_PATH         = var.PLAYBOOKS_PATH
-  GIT_PRIVATE_KEY        = var.GIT_PRIVATE_KEY
-  GIT_SSH_USERNAME       = var.GIT_SSH_USERNAME
-  jenkins_master_sg_id   = module.networking.jenkins_master_sg_id
-  jenkins_agent_sg_id    = module.networking.jenkins_agent_sg_id
-}
+# module "jenkins" {
+#   source      = "./modules/jenkins"
+#   vpc_id      = module.networking.vpc_id
+#   subnet_id   = module.networking.public_subnets_id[0]
+#   environment = var.environment
+#   key_name    = module.auth.key_name
+#   local_ip    = var.local_ip
+#   vpc         = module.networking.vpc
+#   //prometheus_sg = module.monitoring.prometheus_sg
+#   host_os                = var.host_os
+#   JENKINS_ADMIN_ID       = var.JENKINS_ADMIN_ID
+#   JENKINS_ADMIN_PASSWORD = var.JENKINS_ADMIN_PASSWORD
+#   PLAYBOOKS_PATH         = var.PLAYBOOKS_PATH
+#   GIT_PRIVATE_KEY        = var.GIT_PRIVATE_KEY
+#   GIT_SSH_USERNAME       = var.GIT_SSH_USERNAME
+#   jenkins_master_sg_id   = module.networking.jenkins_master_sg_id
+#   jenkins_agent_sg_id    = module.networking.jenkins_agent_sg_id
+# }
 
-module "app" {
-  source      = "./modules/app"
-  vpc_id      = module.networking.vpc_id
-  subnet_id   = module.networking.public_subnets_id[0]
-  environment = var.environment
-  key_name    = module.auth.key_name
-  local_ip    = var.local_ip
-  vpc         = module.networking.vpc
-  //prometheus_sg = module.monitoring.prometheus_sg
-  host_os             = var.host_os
-  //jenkins_agent_sg_id = module.jenkins.jenkins_agent_sg_id
-  PLAYBOOKS_PATH      = var.PLAYBOOKS_PATH
-  app_sg_id           = module.networking.app_sg_id
-}
+# module "app" {
+#   source      = "./modules/app"
+#   vpc_id      = module.networking.vpc_id
+#   subnet_id   = module.networking.public_subnets_id[0]
+#   environment = var.environment
+#   key_name    = module.auth.key_name
+#   local_ip    = var.local_ip
+#   vpc         = module.networking.vpc
+#   //prometheus_sg = module.monitoring.prometheus_sg
+#   host_os             = var.host_os
+#   //jenkins_agent_sg_id = module.jenkins.jenkins_agent_sg_id
+#   PLAYBOOKS_PATH      = var.PLAYBOOKS_PATH
+#   app_sg_id           = module.networking.app_sg_id
+# }
 
 
 

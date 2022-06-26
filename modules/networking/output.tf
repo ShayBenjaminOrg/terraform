@@ -19,14 +19,14 @@ output "vpc" {
 }
 
 ## Security Groups ##
-output "jenkins_master_sg_id" {
-  value = "${aws_security_group.jenkins_master_sg[0].id}"
-}
+# output "jenkins_master_sg_id" {
+#   value = "${aws_security_group.jenkins_master_sg[0].id}"
+# }
 
-output "jenkins_agent_sg_id" {
-  value = "${aws_security_group.jenkins_agent_sg[0].id}"
-}
+# output "jenkins_agent_sg_id" {
+#   value = "${aws_security_group.jenkins_agent_sg[0].id}"
+# }
 
-output "app_sg_id" {
-  value = "${aws_security_group.app_sg[0].id}"
-}
+# output "app_sg_id" {
+#   value = "${aws_security_group.app_sg[0].id}"
+# }
