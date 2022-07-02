@@ -45,3 +45,7 @@ variable "PLAYBOOKS_PATH" {
 variable "GIT_PRIVATE_KEY" {}
 
 variable "GIT_SSH_USERNAME" {}
+
+variable "eks_module_version" {}
+variable "cluster_base_name" {}
+variable "eks_cluster_version" {}

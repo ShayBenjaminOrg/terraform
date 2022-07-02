@@ -1,11 +1,21 @@
 resource "random_id" "random_id_prefix" {
   byte_length = 2
 }
+
+resource "random_string" "suffix" {
+  length  = 8
+  special = false
+}
+
+data "aws_availability_zones" "available" {}
+
 /*====
 Variables used across all modules
 ======*/
 locals {
-  production_availability_zones = ["${var.region}a", "${var.region}b", "${var.region}c"]
+  //production_availability_zones = ["${var.region}a", "${var.region}b", "${var.region}c"]
+  production_availability_zones = slice(data.aws_availability_zones.available.names, 0, 3)
+  
   module_path                   = abspath(path.module)
   codebase_root_path            = abspath("${path.module}/../..")
   # Trim local.codebase_root_path and one additional slash from local.module_path
@@ -16,7 +26,11 @@ locals {
   isJenkinsEnabled    = false
   isPrometheusEnabled = false
   isELKEnabled        = false
+  isK8SEnabled        = true
+  eks_cluster_name    = "${var.environment}-${var.cluster_base_name}-${random_string.suffix.result}"
 }
+
+
 
 module "networking" {
   source               = "./modules/networking"
@@ -29,12 +43,77 @@ module "networking" {
   availability_zones   = local.production_availability_zones
   isPrometheusEnabled  = local.isPrometheusEnabled
   isJenkinsEnabled     = local.isJenkinsEnabled
+  isK8SEnabled         = local.isK8SEnabled
+  eks_cluster_name     = local.eks_cluster_name
 }
 
-module "auth" {
-  source      = "./modules/auth"
-  environment = var.environment
+# module "auth" {
+#   source      = "./modules/auth"
+#   environment = var.environment
+# }
+
+# module "eks_cluster" {
+#   source      = "./modules/eks"
+#   aws_region  = var.region
+#   local_ip    = var.local_ip
+#   vpc_id      = module.networking.vpc_id
+#   environment = var.environment
+#   //vpc_cidr                        = var.vpc_cidr
+#   //public_subnets_cidr             = var.public_subnets_cidr
+#   private_subnets_cidr = var.private_subnets_cidr
+#   private_subnets = module.networking.private_subnets_id
+#   //availability_zones              = local.production_availability_zones
+#   //isPrometheusEnabled             = local.isPrometheusEnabled
+#   //isJenkinsEnabled                = local.isJenkinsEnabled
+#   isK8SEnabled                    = local.isK8SEnabled
+#   eks_cluster_name                = local.eks_cluster_name
+#   eks_module_version              = var.eks_module_version
+#   eks_cluster_version             = var.eks_cluster_version
+#   eks_worker_group_mgmt_one_sg_id = module.networking.eks_worker_group_mgmt_one_sg_id
+#   eks_worker_group_mgmt_two_sg_id = module.networking.eks_worker_group_mgmt_two_sg_id
+# }
+
+
+module "detached-eks" {
+  source               = "./modules/detached-eks"
+  vpc_data = {
+    id = module.networking.vpc_id
+    private_subnets_ids = module.networking.private_subnets_id
+    public_subnets_ids = module.networking.public_subnets_id
+  }
 }
+
+
+
+# data "aws_partition" "current" {}
+
+# data "aws_availability_zones" "available" {}
+
+# locals {
+#   cluster_name = "karpenter-demo"
+
+#   # Used to determine correct partition (i.e. - `aws`, `aws-gov`, `aws-cn`, etc.)
+#   partition = data.aws_partition.current.partition
+
+#   name   = basename(path.cwd)
+#   region = "us-east-1"
+
+#   vpc_cidr = "10.0.0.0/16"
+#   azs      = slice(data.aws_availability_zones.available.names, 0, 3)
+
+#   tags = {
+#     Terraform = "true"
+#     Environment = "dev"
+#   }
+# }
+
+
+
+
+
+
+## Security Groups ##
+
 
 # module "monitoring" {
 #   source      = "./modules/monitoring"

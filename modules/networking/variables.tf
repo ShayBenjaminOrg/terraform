@@ -38,3 +38,10 @@ variable "isJenkinsEnabled" {
   type        = bool
   default = false
 }
+
+variable "isK8SEnabled" {
+  type        = bool
+  default = false
+}
+
+variable "eks_cluster_name" {}

@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ecsdemo-frontend
+  namespace: {{ .Values.ns }}
+spec:
+  selector:
+    app: ecsdemo-frontend
+  type: LoadBalancer
+  ports:
+   -  protocol: TCP
+      port: 80
+      targetPort: 3000
+
