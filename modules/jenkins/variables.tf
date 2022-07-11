@@ -8,9 +8,9 @@ variable "vpc_id" {
   description = "VPC id"
 }
 
-variable "vpc" {
-  description = "VPC instace"
-}
+# variable "vpc" {
+#   description = "VPC instace"
+# }
 
 variable "subnet_id" {
   description = "SubnetId for instance"
@@ -53,6 +53,10 @@ variable "PLAYBOOKS_PATH" {
 variable "GIT_PRIVATE_KEY" {}
 
 variable "GIT_SSH_USERNAME" {}
+
+variable "AWS_ACCESS_KEY_ID" {}
+
+variable "AWS_SECRET_ACCESS_KEY" {}
 
 ## Security Groups ##
 variable "jenkins_master_sg_id" {

@@ -3,7 +3,7 @@
 # Declare variables to be passed into your templates.
 
 # Release-wide Values
-replicas: 4
+replicas: 3
 version: 'latest'
 ns: 'demo-app'
 

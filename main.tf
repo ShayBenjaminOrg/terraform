@@ -9,33 +9,45 @@ resource "random_string" "suffix" {
 
 data "aws_availability_zones" "available" {}
 
+data "http" "workstation-external-ip" {
+  url = "http://ipv4.icanhazip.com"
+}
+
+# # Override with variable or hardcoded value if necessary
+# locals {
+
+# }
+
 /*====
 Variables used across all modules
 ======*/
 locals {
+  workstation-external-cidr = "${chomp(data.http.workstation-external-ip.body)}/32"
   //production_availability_zones = ["${var.region}a", "${var.region}b", "${var.region}c"]
   production_availability_zones = slice(data.aws_availability_zones.available.names, 0, 3)
-  
-  module_path                   = abspath(path.module)
-  codebase_root_path            = abspath("${path.module}/../..")
+
+  module_path        = abspath(path.module)
+  codebase_root_path = abspath("${path.module}/../..")
   # Trim local.codebase_root_path and one additional slash from local.module_path
   module_rel_path = substr(local.module_path, length(local.codebase_root_path) + 1, length(local.module_path))
 
   # Rendering flags
   isAnsibleEnabled    = false
-  isJenkinsEnabled    = false
+  isJenkinsEnabled    = true
   isPrometheusEnabled = false
   isELKEnabled        = false
   isK8SEnabled        = true
-  eks_cluster_name    = "${var.environment}-${var.cluster_base_name}-${random_string.suffix.result}"
+  eks_cluster_name    = "${var.environment}-${var.cluster_base_name}"
+  #eks_cluster_name    = "${var.environment}-${var.cluster_base_name}-${random_string.suffix.result}"
 }
 
 
 
 module "networking" {
-  source               = "./modules/networking"
-  region               = var.region
-  local_ip             = var.local_ip
+  source = "./modules/networking"
+  region = var.region
+  //local_ip             = var.local_ip
+  local_ip             = local.workstation-external-cidr
   environment          = var.environment
   vpc_cidr             = var.vpc_cidr
   public_subnets_cidr  = var.public_subnets_cidr
@@ -47,10 +59,10 @@ module "networking" {
   eks_cluster_name     = local.eks_cluster_name
 }
 
-# module "auth" {
-#   source      = "./modules/auth"
-#   environment = var.environment
-# }
+module "auth" {
+  source      = "./modules/auth"
+  environment = var.environment
+}
 
 # module "eks_cluster" {
 #   source      = "./modules/eks"
@@ -74,41 +86,16 @@ module "networking" {
 # }
 
 
-module "detached-eks" {
-  source               = "./modules/detached-eks"
+module "eks" {
+  source = "./modules/eks"
   vpc_data = {
-    id = module.networking.vpc_id
+    id                  = module.networking.vpc_id
     private_subnets_ids = module.networking.private_subnets_id
-    public_subnets_ids = module.networking.public_subnets_id
+    public_subnets_ids  = module.networking.public_subnets_id
   }
+  cluster_name = local.eks_cluster_name
+  region       = var.region
 }
-
-
-
-# data "aws_partition" "current" {}
-
-# data "aws_availability_zones" "available" {}
-
-# locals {
-#   cluster_name = "karpenter-demo"
-
-#   # Used to determine correct partition (i.e. - `aws`, `aws-gov`, `aws-cn`, etc.)
-#   partition = data.aws_partition.current.partition
-
-#   name   = basename(path.cwd)
-#   region = "us-east-1"
-
-#   vpc_cidr = "10.0.0.0/16"
-#   azs      = slice(data.aws_availability_zones.available.names, 0, 3)
-
-#   tags = {
-#     Terraform = "true"
-#     Environment = "dev"
-#   }
-# }
-
-
-
 
 
 
@@ -126,24 +113,26 @@ module "detached-eks" {
 #    host_os = var.host_os
 # }
 
-# module "jenkins" {
-#   source      = "./modules/jenkins"
-#   vpc_id      = module.networking.vpc_id
-#   subnet_id   = module.networking.public_subnets_id[0]
-#   environment = var.environment
-#   key_name    = module.auth.key_name
-#   local_ip    = var.local_ip
-#   vpc         = module.networking.vpc
-#   //prometheus_sg = module.monitoring.prometheus_sg
-#   host_os                = var.host_os
-#   JENKINS_ADMIN_ID       = var.JENKINS_ADMIN_ID
-#   JENKINS_ADMIN_PASSWORD = var.JENKINS_ADMIN_PASSWORD
-#   PLAYBOOKS_PATH         = var.PLAYBOOKS_PATH
-#   GIT_PRIVATE_KEY        = var.GIT_PRIVATE_KEY
-#   GIT_SSH_USERNAME       = var.GIT_SSH_USERNAME
-#   jenkins_master_sg_id   = module.networking.jenkins_master_sg_id
-#   jenkins_agent_sg_id    = module.networking.jenkins_agent_sg_id
-# }
+module "jenkins" {
+  source      = "./modules/jenkins"
+  vpc_id      = module.networking.vpc_id
+  subnet_id   = module.networking.public_subnets_id[0]
+  environment = var.environment
+  key_name    = module.auth.key_name
+  local_ip    = var.local_ip
+  //vpc         = module.networking.vpc
+  //prometheus_sg = module.monitoring.prometheus_sg
+  host_os                = var.host_os
+  JENKINS_ADMIN_ID       = var.JENKINS_ADMIN_ID
+  JENKINS_ADMIN_PASSWORD = var.JENKINS_ADMIN_PASSWORD
+  PLAYBOOKS_PATH         = var.PLAYBOOKS_PATH
+  GIT_PRIVATE_KEY        = var.GIT_PRIVATE_KEY
+  GIT_SSH_USERNAME       = var.GIT_SSH_USERNAME
+  jenkins_master_sg_id   = module.networking.jenkins_master_sg_id
+  jenkins_agent_sg_id    = module.networking.jenkins_agent_sg_id
+  AWS_ACCESS_KEY_ID      = var.AWS_ACCESS_KEY_ID
+  AWS_SECRET_ACCESS_KEY  = var.AWS_SECRET_ACCESS_KEY
+}
 
 # module "app" {
 #   source      = "./modules/app"

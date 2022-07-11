@@ -1,11 +1,9 @@
 resource "aws_instance" "jenkins_master" {
-  instance_type          = var.instance_type
-  ami                    = data.aws_ami.server_ami.id
-  key_name               = var.key_name
-  //vpc_security_group_ids = [aws_security_group.jenkins_master_sg.id]
+  instance_type = var.instance_type
+  ami           = data.aws_ami.server_ami.id
+  key_name      = var.key_name
   vpc_security_group_ids = [var.jenkins_master_sg_id]
-  subnet_id              = var.subnet_id[0]
-
+  subnet_id              = var.subnet_id
 
   root_block_device {
     volume_size = 8
@@ -16,7 +14,6 @@ resource "aws_instance" "jenkins_master" {
   }
 
   provisioner "local-exec" {
-    //command = templatefile("../../assets/${var.host_os}-ssh-config.tpl", {
     command = templatefile("${path.root}/assets/${var.host_os}-ssh-config.tpl", {
       hostname     = self.public_ip,
       user         = "ec2-user",
@@ -60,8 +57,6 @@ resource "aws_instance" "jenkins_master" {
     destination = "/home/ec2-user/playground/jcasc"
   }
 
-
-
   provisioner "file" {
     source      = "assets/node_exporter.sh"
     destination = "/home/ec2-user/node_exporter/node_exporter.sh"
@@ -80,14 +75,12 @@ resource "aws_instance" "jenkins_master" {
 }
 
 resource "aws_instance" "jenkins_agent" {
-  instance_type          = var.instance_type
-  ami                    = data.aws_ami.server_ami.id
-  key_name               = var.key_name
-  //vpc_security_group_ids = [aws_security_group.jenkins_agent_sg.id]
+  instance_type = var.instance_type
+  ami           = data.aws_ami.server_ami.id
+  key_name      = var.key_name
   vpc_security_group_ids = [var.jenkins_agent_sg_id]
-  subnet_id              = var.subnet_id[0]
+  subnet_id              = var.subnet_id
   depends_on             = [aws_instance.jenkins_master]
-  #user_data = file("${path.module}/assets/agent/userdata_agent.tpl")
   root_block_device {
     volume_size = 8
   }
@@ -100,7 +93,6 @@ resource "aws_instance" "jenkins_agent" {
     command = templatefile("${path.root}/assets/${var.host_os}-ssh-config.tpl", {
       hostname = self.public_ip,
       user     = "ec2-user",
-      //key_name     = "${var.key_name}"
       identityfile = "~/.ssh/mtckey",
     })
     interpreter = var.host_os == "windows" ? ["Powershell", "-Command"] : ["bash", "-c"]
@@ -144,6 +136,11 @@ resource "aws_instance" "jenkins_agent" {
     destination = "/home/ec2-user/.ssh/aws_github_key"
   }
 
+  # provisioner "file" {
+  #   source      = "~/.aws/"
+  #   destination = "/home/ec2-user/"
+  # }
+
   provisioner "remote-exec" {
     inline = [
       "mkdir -p /home/ec2-user/node_exporter",
@@ -158,12 +155,19 @@ resource "aws_instance" "jenkins_agent" {
 
 
   provisioner "local-exec" {
-    # command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ec2-user -i '${self.public_ip},' --private-key ~/.ssh/mtckey -e 'pub_key=~/.ssh/mtckey.pub' -e private_ip=${self.private_ip} -e JENKINS_MASTER_URL=${aws_instance.jenkins_master.private_ip} ${path.root}/modules/ansible/playbooks/jenkins-agent.yaml"
     command = <<-EOT
-      ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ec2-user -i '${self.public_ip},' --private-key ~/.ssh/mtckey -e 'pub_key=~/.ssh/mtckey.pub' -e private_ip=${self.private_ip} -e JENKINS_MASTER_URL=${aws_instance.jenkins_master.private_ip} -e USER=${var.JENKINS_ADMIN_ID} -e PASS=${var.JENKINS_ADMIN_PASSWORD} ${var.PLAYBOOKS_PATH}/jenkins-agent.yaml
+      ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ec2-user -i '${self.public_ip},' --private-key ~/.ssh/mtckey -e 'pub_key=~/.ssh/mtckey.pub' -e private_ip=${self.private_ip} -e JENKINS_MASTER_URL=${aws_instance.jenkins_master.private_ip} -e USER=${var.JENKINS_ADMIN_ID} -e PASS=${var.JENKINS_ADMIN_PASSWORD} -e aws_access_key=${var.AWS_ACCESS_KEY_ID} -e aws_secret_key=${var.AWS_SECRET_ACCESS_KEY} ${var.PLAYBOOKS_PATH}/jenkins-agent.yaml 
       ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ec2-user -i '${aws_instance.jenkins_master.public_ip},' --private-key ~/.ssh/mtckey -e 'pub_key=~/.ssh/mtckey.pub' -e private_ip=${self.private_ip} ${var.PLAYBOOKS_PATH}/jenkins-agent-registration.yaml
     EOT
   }
+
+  # provisioner "local-exec" {
+  #   # command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ec2-user -i '${self.public_ip},' --private-key ~/.ssh/mtckey -e 'pub_key=~/.ssh/mtckey.pub' -e private_ip=${self.private_ip} -e JENKINS_MASTER_URL=${aws_instance.jenkins_master.private_ip} ${path.root}/modules/ansible/playbooks/jenkins-agent.yaml"
+  #   command = <<-EOT
+  #     ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ec2-user -i '${self.public_ip},' --private-key ~/.ssh/mtckey -e 'pub_key=~/.ssh/mtckey.pub' -e private_ip=${self.private_ip} -e JENKINS_MASTER_URL=${aws_instance.jenkins_master.private_ip} -e USER=${var.JENKINS_ADMIN_ID} -e PASS=${var.JENKINS_ADMIN_PASSWORD} ${var.PLAYBOOKS_PATH}/jenkins-agent.yaml
+  #     ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ec2-user -i '${aws_instance.jenkins_master.public_ip},' --private-key ~/.ssh/mtckey -e 'pub_key=~/.ssh/mtckey.pub' -e private_ip=${self.private_ip} ${var.PLAYBOOKS_PATH}/jenkins-agent-registration.yaml
+  #   EOT
+  # }
 
   # provisioner "local-exec" {
   #   # command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ec2-user -i '${self.public_ip},' --private-key ~/.ssh/mtckey -e 'pub_key=~/.ssh/mtckey.pub' -e private_ip=${self.private_ip} -e JENKINS_MASTER_URL=${aws_instance.jenkins_master.private_ip} ${path.root}/modules/ansible/playbooks/jenkins-agent.yaml"
